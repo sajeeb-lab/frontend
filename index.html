@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Registration – Ambassadors Baseball</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Open+Sans:wght@300;400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #0d1f3c;
+    --red: #c8102e;
+    --red2: #a50d25;
+    --white: #ffffff;
+    --light: #f4f6f9;
+    --mid: #dce3ec;
+    --text: #1a1a2e;
+    --sub: #5a6a7a;
+    --req: #c8102e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1.2rem 4rem;
+    padding-top: 210px;
+  }
+
+  /* ── STEP INDICATOR ── */
+  .steps-wrap {
+    max-width: 640px;
+    margin: 0 auto 2rem;
+  }
+  .steps {
+    display: flex;
+    align-items: center;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    flex-shrink: 0;
+  }
+  .step-connector {
+    flex: 1;
+    height: 2px;
+    background: var(--mid);
+    transition: background .4s;
+    min-width: 16px;
+  }
+  .step-connector.completed { background: var(--red); }
+  .step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--mid);
+    color: var(--sub);
+    font-family: 'Oswald', sans-serif;
+    font-size: .78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    transition: background .3s, color .3s;
+  }
+  .step.active .step-num  { background: var(--red);  color: var(--white); }
+  .step.completed .step-num { background: var(--navy); color: var(--white); }
+  .step-label {
+    font-size: .68rem;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--sub);
+    white-space: nowrap;
+    transition: color .3s;
+  }
+  .step.active .step-label   { color: var(--red); }
+  .step.completed .step-label { color: var(--navy); }
+
+  /* ── MAIN ── */
+  .main { max-width: 640px; margin: 0 auto; }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    height: 3px;
+    background: var(--mid);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--red);
+    border-radius: 2px;
+    transition: width .4s ease;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.07);
+    padding: 1.6rem 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+
+  /* ── SECTION HEADING ── */
+  .section-heading {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    padding-bottom: .55rem;
+    border-bottom: 2px solid var(--red);
+    margin-bottom: 1.3rem;
+  }
+
+  /* ── SUB DIVIDER ── */
+  .sub-divider {
+    font-family: 'Oswald', sans-serif;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--sub);
+    padding-bottom: .6rem;
+    border-bottom: 1px solid var(--mid);
+    margin: 1.4rem 0 1.1rem;
+  }
+
+  /* ── MANDATORY BADGE ── */
+  .mandatory-badge {
+    display: inline-block;
+    background: #fff0f2;
+    color: var(--red);
+    border: 1px solid #ffc0c8;
+    border-radius: 3px;
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    margin-left: .45rem;
+    vertical-align: middle;
+  }
+
+  /* ── FIELD ── */
+  .field { margin-bottom: 1.05rem; }
+  .field.has-error input,
+  .field.has-error select {
+    border-color: var(--red);
+    background: #fff8f8;
+    box-shadow: 0 0 0 3px rgba(200,16,46,.08);
+  }
+  .field.has-error label { color: var(--red); }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: .74rem;
+    font-weight: 700;
+    color: var(--sub);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: .36rem;
+  }
+  .field label .req { color: var(--req); margin-left: 2px; font-weight: 400; }
+  .field input,
+  .field select {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--mid);
+    border-radius: 5px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: .88rem;
+    color: var(--text);
+    background: var(--light);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%235a6a7a' d='M8 11L2 5h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 13px;
+    padding-right: 34px;
+  }
+  .field input:focus,
+  .field select:focus {
+    border-color: var(--navy);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(10,22,40,.07);
+  }
+  .field .hint {
+    font-size: .72rem;
+    color: var(--sub);
+    margin-top: .28rem;
+  }
+
+  /* ── RADIO ── */
+  .radio-group { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .radio-item input[type="radio"] { display: none; }
+  .radio-item label {
+    display: flex;
+    align-items: center;
+    gap: .36rem;
+    padding: 8px 16px;
+    border: 1.5px solid var(--mid);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: .84rem;
+    font-weight: 600;
+    color: var(--sub);
+    background: var(--light);
+    transition: border-color .2s, background .2s, color .2s;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .radio-item label::before {
+    content: '';
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid var(--mid);
+    flex-shrink: 0;
+    transition: border-color .2s, background .2s;
+  }
+  .radio-item input[type="radio"]:checked + label {
+    border-color: var(--navy);
+    background: var(--navy);
+    color: var(--white);
+  }
+  .radio-item input[type="radio"]:checked + label::before {
+    border-color: var(--red);
+    background: var(--red);
+  }
+
+  /* ── ACK BLOCK ── */
+  .ack-block {
+    background: var(--light);
+    border: 1.5px solid var(--mid);
+    border-radius: 6px;
+    padding: .85rem 1rem;
+    margin-bottom: .8rem;
+    transition: border-color .2s, background .2s;
+  }
+  .ack-block.has-error {
+    border-color: var(--red);
+    background: #fff8f8;
+  }
+  .ack-block.has-error .ack-text { color: var(--red); }
+  .ack-block:last-child { margin-bottom: 0; }
+  .ack-text {
+    font-size: .86rem;
+    color: var(--text);
+    margin-bottom: .6rem;
+    line-height: 1.55;
+  }
+  .ack-text a { color: var(--red); text-decoration: none; }
+  .ack-text a:hover { text-decoration: underline; }
+
+  /* ── FEE BOX ── */
+  .fee-box {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+    border-radius: 6px;
+    padding: .85rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .fee-box-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: .68rem;
+    font-weight: 500;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: .1rem;
+  }
+  .fee-box-amount {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .fee-box-type {
+    background: var(--red);
+    color: var(--white);
+    font-family: 'Oswald', sans-serif;
+    font-size: .66rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .fee-box--empty {
+    background: var(--light);
+    border: 1.5px solid var(--mid);
+    border-radius: 5px;
+  }
+  /* placeholder state — muted */
+  .fee-box--empty.fee-placeholder .fee-box-label {
+    color: var(--sub);
+    font-size: .74rem;
+  }
+  .fee-box--empty.fee-placeholder .fee-box-amount {
+    color: var(--sub);
+    font-size: .88rem;
+    font-weight: 400;
+    font-family: 'Open Sans', sans-serif;
+  }
+  .fee-box--empty.fee-placeholder .fee-box-type {
+    background: var(--mid);
+    color: var(--sub);
+  }
+  /* populated state — normal colours */
+  .fee-box--empty:not(.fee-placeholder) .fee-box-label {
+    color: var(--sub);
+    font-size: .68rem;
+  }
+  .fee-box--empty:not(.fee-placeholder) .fee-box-amount {
+    color: var(--text);
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-family: 'Oswald', sans-serif;
+  }
+  .fee-box--empty:not(.fee-placeholder) .fee-box-type {
+    background: var(--navy);
+    color: var(--white);
+  }
+
+  /* ── TEAM SEARCH ── */
+  /* search removed */
+  .search-wrap-unused {
+    flex: 1;
+    padding: 10px 13px;
+    border: 1.5px solid var(--mid);
+    border-right: none;
+    border-radius: 5px 0 0 5px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: .88rem;
+    color: var(--text);
+    background: var(--light);
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-wrap input:focus { border-color: var(--navy); background: var(--white); }
+  .search-btn {
+    padding: 10px 18px;
+    background: var(--red);
+    border: none;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    transition: background .2s;
+    white-space: nowrap;
+  }
+  .search-btn:hover { background: var(--red2); }
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border: 1.5px solid var(--mid);
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    overflow: hidden;
+    display: none;
+    background: var(--white);
+    z-index: 100;
+    box-shadow: 0 6px 18px rgba(0,0,0,.1);
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .search-result-item {
+    padding: 9px 13px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--mid);
+    transition: background .15s;
+    font-size: .87rem;
+  }
+  .search-result-item:last-child { border-bottom: none; }
+  .search-result-item:hover { background: var(--light); }
+  .search-result-item strong { display: block; color: var(--text); }
+  .search-result-item span { font-size: .76rem; color: var(--sub); }
+  .selected-team-badge {
+    display: none;
+    background: #edf6ff;
+    border: 1.5px solid #b3d9ff;
+    border-radius: 5px;
+    padding: .6rem .9rem;
+    font-size: .85rem;
+    color: var(--navy);
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+  .selected-team-badge button {
+    background: none;
+    border: none;
+    color: var(--sub);
+    cursor: pointer;
+    font-size: .76rem;
+    text-decoration: underline;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 13px 28px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-size: .9rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    transition: background .2s, transform .15s, opacity .2s;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--red);  color: var(--white); }
+  .btn-primary:hover { background: var(--red2); }
+  .btn-navy    { background: var(--navy); color: var(--white); }
+  .btn-navy:hover { background: var(--navy2); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+  /* ── BUTTON ROW ── */
+  .btn-row {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+  }
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    padding: 13px 18px;
+    border: 1.5px solid var(--mid);
+    border-radius: 5px;
+    background: var(--white);
+    color: var(--sub);
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-size: .9rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transition: border-color .2s, color .2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .btn-back:hover { border-color: var(--navy); color: var(--navy); }
+  .btn-back svg { width: 14px; height: 14px; }
+
+  /* ── ERROR ── */
+  .err-msg {
+    background: #fff5f5;
+    border: 1px solid #ffc0c0;
+    color: var(--red);
+    border-radius: 5px;
+    padding: .65rem .9rem;
+    font-size: .82rem;
+    margin-bottom: .9rem;
+    display: none;
+  }
+
+  /* ── REQ NOTE ── */
+  .req-note {
+    font-size: .73rem;
+    color: var(--sub);
+    margin-bottom: 1.1rem;
+  }
+  .req-note .req { color: var(--req); font-weight: 700; }
+
+  /* ── NOTICE ── */
+  .notice {
+    background: #fffbe6;
+    border: 1px solid #ffe58f;
+    border-radius: 5px;
+    padding: .65rem .9rem;
+    font-size: .81rem;
+    color: #7a5c00;
+    margin-bottom: 1.1rem;
+  }
+
+  /* ── SUMMARY ── */
+  .summary-block {
+    background: var(--light);
+    border-radius: 6px;
+    padding: .85rem 1rem;
+    margin-bottom: 1.1rem;
+    font-size: .86rem;
+    line-height: 2;
+  }
+
+  /* ── SUCCESS ── */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.07);
+  }
+  .success-icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+  .success-screen h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .5rem;
+  }
+  .success-screen p { color: var(--sub); font-size: .88rem; line-height: 1.65; }
+
+  /* ── PAGE VISIBILITY ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  @media (max-width: 480px) {
+    body { padding: 1.2rem .8rem 3rem; padding-top: 215px; }
+    .card { padding: 1.2rem 1rem; }
+    .step-label { display: none; }
+  }
+
+  
+
+  /* ── NAVBAR ── */
+  .navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: #ffffff;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,.12);
+    border-bottom: 1.5px solid #0042ab;
+  }
+  /* outer row — matches padding of original row-ssWi4pRM__ */
+  .navbar-inner {
+    width: 100%;
+    padding: 10px 5px;
+    display: flex;
+    align-items: stretch;
+  }
+  /* 83.9% column: logo + nav links */
+  .navbar-nav-col {
+    width: 83.9%;
+    padding: 10px 5px;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  /* inner wrapper — reproduces cnav-menu-v2 padding exactly */
+  .navbar-nav-inner {
+    width: 100%;
+    padding: 8px 40px 8px 120px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  /* ── LOGO ── */
+  .navbar-logo {
+    flex-shrink: 0;
+    text-decoration: none;
+    display: block;
+    margin-right: 16px;
+  }
+  .navbar-logo img {
+    width: 250px !important;
+    height: auto;
+    display: block;
+    object-fit: contain;
+  }
+  .navbar-logo-fallback {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+  .navbar-logo-fallback .logo-top {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #c8102e;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .navbar-logo-fallback .logo-bottom {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: #0042ab;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+  }
+  .navbar-logo-fallback .logo-tag {
+    font-family: Georgia, serif;
+    font-size: .62rem;
+    font-style: italic;
+    color: #c8102e;
+  }
+
+  /* ── NAV LINKS ── */
+  .navbar-links {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+    justify-content: flex-end;
+  }
+  .navbar-links li { margin-left: 2px; }
+  .navbar-links a {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #000000;
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 0;
+    display: block;
+    text-transform: capitalize;
+    letter-spacing: 0;
+    line-height: 1.3em;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transition: background .15s, color .15s;
+  }
+  .navbar-links a:hover { background: #0042ab; color: #ffffff; }
+
+  /* fixed column: Coach Login */
+  .navbar-cta-col {
+    width: 140px;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  /* ── COACH LOGIN BUTTON ── */
+  .navbar-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 110px;
+    height: 110px;
+    background: #0042ab;
+    color: #ffffff !important;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 32px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,66,171,.35);
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+    text-transform: none;
+    letter-spacing: 0;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .navbar-cta:hover { background: #003090; }
+
+  /* ── HAMBURGER (desktop: hidden) ── */
+  .navbar-hamburger {
+    display: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: .4rem .5rem;
+    color: #0042ab;
+    font-size: 22px;
+    line-height: 1;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* ── MOBILE OVERLAY MENU ── */
+  .navbar-mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100vh;
+    background: #ffffff;
+    z-index: 9999;
+    overflow-y: auto;
+    padding: 1rem 1rem 8rem;
+    flex-direction: column;
+  }
+  .navbar-mobile-menu.open { display: flex; }
+  .navbar-mobile-close {
+    align-self: flex-end;
+    background: none; border: none;
+    font-size: 24px; color: #0042ab;
+    cursor: pointer; padding: .3rem .5rem;
+    margin-bottom: .5rem; line-height: 1;
+  }
+  .navbar-mobile-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+  .navbar-mobile-links li { margin-bottom: 2px; }
+  .navbar-mobile-links a {
+    display: block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px; font-weight: 700;
+    color: #000; text-decoration: none;
+    padding: 8px 16px; line-height: 1.3em;
+    text-transform: capitalize;
+    transition: background .15s, color .15s;
+  }
+  .navbar-mobile-links a:hover { background: #0042ab; color: #fff; }
+
+  @media (max-width: 1024px) {
+    .navbar-cta-col  { display: none; }
+  }
+  @media (max-width: 480px) {
+    .navbar-inner     { padding: 0; height: 200px; align-items: center; position: relative; }
+    .navbar-nav-col   { width: 100%; padding: 0; flex: 1; min-width: 0; }
+    .navbar-nav-inner { padding: 0 50px 0 0; align-items: center; justify-content: center; position: relative; }
+    .navbar-logo      { margin-right: 0; }
+    .navbar-logo img  { width: 320px !important; height: auto !important; max-width: 80vw; }
+    .navbar-links     { display: none; }
+    .navbar-hamburger { display: flex; align-items: center; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 26px; }
+  }
+</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+  <style>
+    /* Flatpickr DOB overrides */
+    .flatpickr-input { cursor: pointer; }
+    .flatpickr-calendar { font-family: 'Open Sans', sans-serif; border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,.15); }
+    .flatpickr-months .flatpickr-month { background: #0a1628; border-radius: 8px 8px 0 0; }
+    .flatpickr-current-month { color: #fff; font-family: 'Oswald', sans-serif; }
+    .flatpickr-current-month .flatpickr-monthDropdown-months { background: #0a1628; color: #fff; font-family: 'Oswald', sans-serif; font-size: .95rem; }
+    .flatpickr-current-month input.cur-year { color: #fff; font-family: 'Oswald', sans-serif; font-size: .95rem; font-weight: 600; }
+    .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { fill: #fff; color: #fff; }
+    .flatpickr-months .flatpickr-prev-month:hover, .flatpickr-months .flatpickr-next-month:hover { background: rgba(255,255,255,.15); border-radius: 4px; }
+    .flatpickr-day.selected, .flatpickr-day.selected:hover { background: #c8102e; border-color: #c8102e; }
+    .flatpickr-day:hover { background: #f0f4ff; border-color: #1a3fc4; }
+    .flatpickr-weekday { color: #5a6a7a; font-weight: 700; }
+    .numInputWrapper:hover { background: rgba(255,255,255,.1); }
+    .numInputWrapper span { border-color: rgba(255,255,255,.2); }
+    .numInputWrapper span svg { fill: rgba(255,255,255,.7); }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar">
+  <div class="navbar-inner">
+
+    <!-- 83.9% column: logo + nav links -->
+    <div class="navbar-nav-col">
+      <div class="navbar-nav-inner">
+        <a class="navbar-logo" href="https://ambassadorsbaseballus.com/home">
+          <img
+            src="src/logo.webp"
+            alt="Ambassadors Baseball"
+            onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'navbar-logo-fallback\'><span class=\'logo-top\'>Ambassadors</span><span class=\'logo-bottom\'>Baseball</span><span class=\'logo-tag\'>Let Your Light Shine</span></span>';"
+          >
+        </a>
+        <ul class="navbar-links">
+          <li><a href="https://ambassadorsbaseballus.com/home">Home</a></li>
+          <li><a href="https://ambassadorsbaseballus.com/about-us">About</a></li>
+          <li><a href="https://ambassadorsbaseballus.com/Our-Mission">Mission</a></li>
+          <li><a href="https://ambassadorsbaseballus.com/teams">Teams &amp; Tryouts</a></li>
+          <li><a href="https://ambassadorsbaseballus.com/commitments">Commitments</a></li>
+          <li><a href="https://ambassadorsbaseballus.com/opportunities">Opportunities</a></li>
+          <li><a href="https://ambassadorsbaseballus.com/faq">FAQ</a></li>
+          <li><a href="https://ambassadorsbaseballus.com/contact-us">Contact</a></li>
+        </ul>
+        <!-- Hamburger: only visible on mobile (≤480px) -->
+        <button class="navbar-hamburger" aria-label="Open menu" onclick="openMobileMenu()">&#9776;</button>
+      </div>
+    </div>
+
+    <!-- 16.1% column: Coach Login (desktop only, hidden on mobile) -->
+    <div class="navbar-cta-col">
+      <a href="https://ambassadorsbaseballus.com/coach-login" class="navbar-cta">Coach Login</a>
+    </div>
+
+  </div>
+</nav>
+
+<!-- Mobile full-screen menu overlay -->
+<div class="navbar-mobile-menu" id="mobileMenu">
+  <button class="navbar-mobile-close" onclick="closeMobileMenu()" aria-label="Close menu">&#10005;</button>
+  <ul class="navbar-mobile-links">
+    <li><a href="https://ambassadorsbaseballus.com/home"          onclick="closeMobileMenu()">Home</a></li>
+    <li><a href="https://ambassadorsbaseballus.com/about-us"      onclick="closeMobileMenu()">About</a></li>
+    <li><a href="https://ambassadorsbaseballus.com/Our-Mission"   onclick="closeMobileMenu()">Mission</a></li>
+    <li><a href="https://ambassadorsbaseballus.com/teams"         onclick="closeMobileMenu()">Teams &amp; Tryouts</a></li>
+    <li><a href="https://ambassadorsbaseballus.com/commitments"   onclick="closeMobileMenu()">Commitments</a></li>
+    <li><a href="https://ambassadorsbaseballus.com/opportunities" onclick="closeMobileMenu()">Opportunities</a></li>
+    <li><a href="https://ambassadorsbaseballus.com/faq"           onclick="closeMobileMenu()">FAQ</a></li>
+    <li><a href="https://ambassadorsbaseballus.com/contact-us"    onclick="closeMobileMenu()">Contact</a></li>
+  </ul>
+</div>
+
+
+
+<div class="steps-wrap">
+  <div class="steps">
+    <div class="step active" id="step-dot-1">
+      <div class="step-num">1</div>
+      <div class="step-label">Basic Info</div>
+    </div>
+    <div class="step-connector" id="connector-1"></div>
+    <div class="step" id="step-dot-2">
+      <div class="step-num">2</div>
+      <div class="step-label">Player Info</div>
+    </div>
+    <div class="step-connector" id="connector-2"></div>
+    <div class="step" id="step-dot-3">
+      <div class="step-num">3</div>
+      <div class="step-label">Payment</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ══ PAGE 1 ══ -->
+  <div class="page active" id="page-1">
+    <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
+
+    <!-- Basic Info -->
+    <div class="card">
+      <div class="section-heading">Section 1 — Basic Info</div>
+
+
+      <div class="field">
+        <label>Player Name <span class="req">★</span></label>
+        <input type="text" id="player-name" placeholder="Full name of the player">
+      </div>
+
+      <div class="sub-divider">Mother's Information</div>
+
+      <div class="field">
+        <label>Mother First Name</label>
+        <input type="text" id="mother-first" placeholder="First name">
+      </div>
+      <div class="field">
+        <label>Mother Last Name</label>
+        <input type="text" id="mother-last" placeholder="Last name">
+      </div>
+      <div class="field">
+        <label>Mother Cell</label>
+        <input type="tel" id="mother-cell" placeholder="(555) 000-0000">
+      </div>
+      <div class="field">
+        <label>Mother Email</label>
+        <input type="email" id="mother-email" placeholder="email@example.com">
+      </div>
+
+      <div class="sub-divider">
+        Father's Information
+      </div>
+
+      <div class="field">
+        <label>Father First Name <span class="req">★</span></label>
+        <input type="text" id="father-first" placeholder="First name">
+      </div>
+      <div class="field">
+        <label>Father Last Name <span class="req">★</span></label>
+        <input type="text" id="father-last" placeholder="Last name">
+      </div>
+      <div class="field">
+        <label>Father Cell <span class="req">★</span></label>
+        <input type="tel" id="father-cell" placeholder="(555) 000-0000">
+      </div>
+      <div class="field">
+        <label>Father Email <span class="req">★</span></label>
+        <input type="email" id="father-email" placeholder="email@example.com">
+      </div>
+    </div>
+
+    <!-- Acknowledgements -->
+    <div class="card">
+      <div class="section-heading">Acknowledgements</div>
+
+      <div class="field">
+        <label>Team Name <span class="req">★</span></label>
+        <div id="selected-team-badge" style="display:flex;align-items:center;gap:.6rem;background:#f0f4ff;border:1.5px solid #1a3fc4;border-radius:8px;padding:.75rem 1rem;font-size:.9rem;font-weight:600;color:#0a1628;">
+          <span style="color:#1a3fc4;font-size:1.1rem;">✔</span>
+          <span id="selected-team-name" style="flex:1">Loading team…</span>
+        </div>
+        <div id="team-error" style="display:none;color:#c8102e;font-size:.82rem;margin-top:.4rem;">Team not found. Please check your link.</div>
+      </div>
+
+      <!-- Fee (always visible) -->
+      <div id="fee-display" style="margin-bottom:.3rem">
+        <div class="field">
+          <label>Player Fee Amount</label>
+          <div class="fee-box fee-box--empty fee-placeholder" id="fee-box" style="margin-top:.2rem">
+            <div>
+              <div class="fee-box-label" id="fee-label">Loading fee…</div>
+              <div class="fee-box-amount" id="fee-amount" style="font-size:1rem;opacity:.4;font-weight:400;letter-spacing:0">—</div>
+            </div>
+            <div class="fee-box-type" id="fee-type-badge" style="opacity:.3">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ack-block">
+        <div class="ack-text">I understand that player fees are <strong>non-refundable.</strong></div>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" name="ack1" id="ack1-yes" value="yes"><label for="ack1-yes">Yes</label></div>
+          <div class="radio-item"><input type="radio" name="ack1" id="ack1-no"  value="no"><label  for="ack1-no">No</label></div>
+        </div>
+      </div>
+
+      <div class="ack-block">
+        <div class="ack-text">I understand that the Ambassadors Baseball <strong>uniform package is NOT included</strong> in player fees and that I must purchase it separately.</div>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" name="ack2" id="ack2-yes" value="yes"><label for="ack2-yes">Yes</label></div>
+          <div class="radio-item"><input type="radio" name="ack2" id="ack2-no"  value="no"><label  for="ack2-no">No</label></div>
+        </div>
+      </div>
+
+      <div class="ack-block">
+        <div class="ack-text">I understand and agree to the <strong>Player, Parent, Coach Contract</strong> (<a href="#" target="_blank">see here</a>).</div>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" name="ack3" id="ack3-yes" value="yes"><label for="ack3-yes">Yes</label></div>
+          <div class="radio-item"><input type="radio" name="ack3" id="ack3-no"  value="no"><label  for="ack3-no">No</label></div>
+        </div>
+      </div>
+
+      <div class="sub-divider">Injury Protection Plan</div>
+
+      <div class="ack-block">
+        <div class="ack-text">I would like to add <strong>Injury Protection</strong> (<a href="#" target="_blank">see here</a>).</div>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" name="ack4" id="ack4-yes" value="yes"><label for="ack4-yes">Yes</label></div>
+          <div class="radio-item"><input type="radio" name="ack4" id="ack4-no"  value="no"><label  for="ack4-no">No</label></div>
+        </div>
+      </div>
+
+      <div class="ack-block">
+        <div class="ack-text">I decline the Injury Protection Plan.</div>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" name="ack5" id="ack5-yes" value="yes"><label for="ack5-yes">Yes</label></div>
+          <div class="radio-item"><input type="radio" name="ack5" id="ack5-no"  value="no"><label  for="ack5-no">No</label></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="err-msg" id="err-1"></div>
+    <button class="btn btn-primary" onclick="goToPage2()">Continue</button>
+  </div>
+
+
+  <!-- ══ PAGE 2 ══ -->
+  <div class="page" id="page-2">
+    <div class="progress-bar"><div class="progress-fill" style="width:66%"></div></div>
+
+    <div class="card">
+      <div class="section-heading">Player Info</div>
+
+
+      <div class="field">
+        <label>Player DOB <span class="req">★</span></label>
+        <input type="text" id="player-dob" placeholder="Select date of birth…" readonly style="cursor:pointer">
+      </div>
+      <div class="field">
+        <label>Player Cell <span class="req">★</span></label>
+        <input type="tel" id="player-cell" placeholder="(555) 000-0000">
+      </div>
+      <div class="field">
+        <label>Player Email <span class="req">★</span></label>
+        <input type="email" id="player-email" placeholder="email@example.com">
+      </div>
+
+      <div class="sub-divider">Home Address</div>
+
+      <div class="field">
+        <label>Street <span class="req">★</span></label>
+        <input type="text" id="addr-street" placeholder="123 Main Street">
+      </div>
+      <div class="field">
+        <label>City <span class="req">★</span></label>
+        <input type="text" id="addr-city" placeholder="City">
+      </div>
+      <div class="field">
+        <label>State <span class="req">★</span></label>
+        <input type="text" id="addr-state" placeholder="e.g. TX" maxlength="2" style="text-transform:uppercase">
+      </div>
+      <div class="field">
+        <label>Zip <span class="req">★</span></label>
+        <input type="text" id="addr-zip" placeholder="00000" maxlength="10">
+      </div>
+
+      <div class="sub-divider">Batting &amp; Throwing</div>
+
+      <div class="field">
+        <label>Bats <span class="req">★</span></label>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" name="bats" id="bats-right" value="Right"><label for="bats-right">Right</label></div>
+          <div class="radio-item"><input type="radio" name="bats" id="bats-left"  value="Left"><label  for="bats-left">Left</label></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Throws <span class="req">★</span></label>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" name="throws" id="throws-right" value="Right"><label for="throws-right">Right</label></div>
+          <div class="radio-item"><input type="radio" name="throws" id="throws-left"  value="Left"><label  for="throws-left">Left</label></div>
+        </div>
+      </div>
+
+      <div class="sub-divider">Jersey &amp; Position</div>
+
+      <div class="field">
+        <label>Preferred Jersey Number — First Choice <span class="req">★</span></label>
+        <input type="number" id="jersey-1" placeholder="e.g. 12" min="0" max="99">
+      </div>
+      <div class="field">
+        <label>Preferred Jersey Number — Second Choice <span class="req">★</span></label>
+        <input type="number" id="jersey-2" placeholder="e.g. 24" min="0" max="99">
+      </div>
+      <div class="field">
+        <label>First Position <span class="req">★</span></label>
+        <select id="pos-1">
+          <option value="">Select position…</option>
+          <option value="OF">OF</option>
+          <option value="CINF">CINF</option>
+          <option value="MIF">MIF</option>
+          <option value="C">C</option>
+          <option value="RHP">RHP</option>
+          <option value="LHP">LHP</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Second Position <span class="req">★</span></label>
+        <select id="pos-2">
+          <option value="">Select position…</option>
+          <option value="OF">OF</option>
+          <option value="CINF">CINF</option>
+          <option value="MIF">MIF</option>
+          <option value="C">C</option>
+          <option value="RHP">RHP</option>
+          <option value="LHP">LHP</option>
+        </select>
+      </div>
+
+      <div class="sub-divider">Additional Details</div>
+
+      <div class="field">
+        <label>Ht/Wt <span class="req">★</span></label>
+        <input type="text" id="hw" placeholder="e.g. 5-10/180">
+        <div class="hint">Format: feet-inches/lbs &nbsp;(e.g. 5-10/180)</div>
+      </div>
+      <div class="field">
+        <label>Grad Year <span class="req">★</span></label>
+        <select id="grad-year">
+          <option value="">Select year…</option>
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
+          <option value="2028">2028</option>
+          <option value="2029">2029</option>
+          <option value="2030">2030</option>
+          <option value="2031">2031</option>
+          <option value="2032">2032</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>High School (current or will attend) <span class="req">★</span></label>
+        <input type="text" id="high-school" placeholder="School name">
+      </div>
+    </div>
+
+    <div class="err-msg" id="err-2"></div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="setPage(1)">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </button>
+      <button class="btn btn-primary" style="flex:1" onclick="goToPage3()">Continue to Payment</button>
+    </div>
+  </div>
+
+
+  <!-- ══ PAGE 3 ══ -->
+  <div class="page" id="page-3">
+    <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+
+    <div class="card" id="payment-card">
+      <div class="section-heading">Payment</div>
+      <div class="notice">Review your details before completing payment. Your spot is secured once payment is received.</div>
+
+      <div class="sub-divider">Registration Summary</div>
+      <div class="summary-block">
+        <div><strong>Team:</strong> <span id="sum-team">—</span></div>
+        <div><strong>Player:</strong> <span id="sum-player">—</span></div>
+        <div id="sum-fee-row"><strong>Amount:</strong> <span id="sum-fee">—</span></div>
+      </div>
+
+      <div id="payment-action"></div>
+      <div class="err-msg" id="err-3"></div>
+      <button class="btn-back" onclick="setPage(2)" style="margin-top:.6rem">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to Player Info
+      </button>
+    </div>
+
+    <div class="success-screen" id="success-screen">
+      <span class="success-icon">✅</span>
+      <h2>Registration Complete!</h2>
+      <p>Thank you — your information has been submitted successfully.<br>You will receive a confirmation email shortly.</p>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+const API_BASE = 'https://backend-baseball-inky.vercel.app';
+
+let selectedTeam     = null;
+let teamFinancials   = null;
+let createdPlayerId  = null;
+let createdPaymentId = null;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+const v  = id => document.getElementById(id).value.trim();
+const vs = id => document.getElementById(id).value;
+const gr = name => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; };
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.innerHTML = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function hideErr(id) { document.getElementById(id).style.display = 'none'; }
+
+function setPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${n}`).classList.add('active');
+  for (let i = 1; i <= 3; i++) {
+    const d = document.getElementById(`step-dot-${i}`);
+    d.classList.remove('active', 'completed');
+    if (i < n) d.classList.add('completed');
+    else if (i === n) d.classList.add('active');
+  }
+  for (let i = 1; i <= 2; i++) {
+    const c = document.getElementById(`connector-${i}`);
+    if (c) { c.classList.toggle('completed', i < n); }
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── TEAM SEARCH ───────────────────────────────────────────────────────────
+let allTeams = [];
+(async () => {
+  try {
+    const r = await fetch(`${API_BASE}/api/teams`);
+    const d = await r.json();
+    allTeams = Array.isArray(d) ? d : (Array.isArray(d?.teams) ? d.teams : []);
+
+    // Read team from URL path (/TeamName), ?team= query param, or hash fallback
+    const params    = new URLSearchParams(window.location.search);
+    const qParam    = params.get('team');
+    const rawHash   = window.location.hash.slice(1);
+    const pathSlug  = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+    const slug      = qParam
+      ? decodeURIComponent(qParam)
+      : pathSlug
+        ? decodeURIComponent(pathSlug)
+        : (rawHash ? decodeURIComponent(rawHash) : '');
+
+    if (slug) {
+      const normalize = str => str.replace(/[-\s\/]+/g, '').toLowerCase();
+      const match = allTeams.find(t => normalize(t.teamName) === normalize(slug));
+      if (match) {
+        await selectTeam(match._id);
+      } else {
+        document.getElementById('selected-team-name').textContent = 'Team not found';
+        document.getElementById('selected-team-badge').style.borderColor = '#c8102e';
+        document.getElementById('team-error').style.display = 'block';
+      }
+    } else {
+      document.getElementById('selected-team-name').textContent = 'No team specified';
+    }
+  } catch(e) {
+    console.error('Team load error:', e);
+  }
+})();
+
+async function selectTeam(id) {
+  selectedTeam = allTeams.find(t => t._id === id);
+  document.getElementById('selected-team-name').textContent = selectedTeam.teamName;
+  document.getElementById('selected-team-badge').style.display = 'flex';
+
+  try {
+    const r = await fetch(`${API_BASE}/api/teams/${id}/financials`);
+    const d = await r.json();
+    teamFinancials = d.financials;
+    renderFee();
+  } catch(e) { teamFinancials = null; }
+}
+
+function setFeePlaceholder() {
+  const box   = document.getElementById('fee-box');
+  const amt   = document.getElementById('fee-amount');
+  const badge = document.getElementById('fee-type-badge');
+  box.classList.add('fee-box--empty', 'fee-placeholder');
+  document.getElementById('fee-label').textContent = 'Select a team to view';
+  document.getElementById('fee-label').style.display = '';
+  amt.textContent   = '—';
+  amt.style.cssText = '';
+  badge.textContent = '—';
+  badge.style.opacity = '';
+}
+
+function renderFee() {
+  const amt   = document.getElementById('fee-amount');
+  const badge = document.getElementById('fee-type-badge');
+
+  if (!teamFinancials) { setFeePlaceholder(); return; }
+  const { player_fee, deposit_enabled, deposit_amount, monthly_payments } = teamFinancials;
+
+  const box = document.getElementById('fee-box');
+  box.classList.remove('fee-placeholder');
+  amt.style.cssText   = '';
+  badge.style.opacity = '1';
+
+  const lbl = document.getElementById('fee-label');
+
+  if (deposit_enabled) {
+    lbl.style.display = 'none';
+    amt.textContent   = `$${deposit_amount || 0}`;
+    badge.textContent = 'Deposit';
+  } else if (!monthly_payments) {
+    lbl.style.display = 'none';
+    amt.textContent   = `$${player_fee || 0}`;
+    badge.textContent = 'Full Payment';
+  } else {
+    lbl.style.display = 'none';
+    amt.textContent   = `$${player_fee || 0}`;
+    badge.textContent = 'Monthly';
+  }
+}
+
+
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+function markError(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.closest('.field')?.classList.add('has-error');
+  el.addEventListener('input', function(){ this.closest('.field')?.classList.remove('has-error'); }, { once: true });
+}
+
+function clearErrors(pageEl) {
+  pageEl.querySelectorAll('.field.has-error').forEach(f => f.classList.remove('has-error'));
+}
+
+function goToPage2() {
+  hideErr('err-1');
+  const page = document.getElementById('page-1');
+  clearErrors(page);
+  let invalid = false;
+
+  const reqFields = ['player-name', 'father-first', 'father-last', 'father-cell', 'father-email'];
+  reqFields.forEach(id => {
+    if (!v(id)) { markError(id); invalid = true; }
+  });
+  if (!selectedTeam) {
+    document.getElementById('selected-team-badge')?.classList.add('has-error');
+    invalid = true;
+  }
+  if (invalid) {
+    return showErr('err-1', 'Please complete all required fields marked with ★ before continuing.');
+  }
+  setPage(2);
+}
+
+function goToPage3() {
+  hideErr('err-2');
+  const page = document.getElementById('page-2');
+  clearErrors(page);
+  let invalid = false;
+
+  const reqText   = ['player-dob','player-cell','player-email','addr-street','addr-city','addr-state','addr-zip','jersey-1','jersey-2','hw','high-school'];
+  const reqSelect = ['pos-1','pos-2','grad-year'];
+  reqText.forEach(id => { if (!v(id)) { markError(id); invalid = true; } });
+  reqSelect.forEach(id => { if (!vs(id)) { markError(id); invalid = true; } });
+  ['bats','throws'].forEach(name => {
+    const inputs = document.querySelectorAll(`input[name="${name}"]`);
+    const field  = inputs[0]?.closest('.field');
+    if (!gr(name)) {
+      if (field) { field.classList.add('has-error'); }
+      invalid = true;
+    }
+  });
+
+  if (invalid) return showErr('err-2', 'Please complete all required fields marked with ★ before continuing.');
+  buildPaymentPage();
+  setPage(3);
+}
+
+// ── PAYMENT PAGE ──────────────────────────────────────────────────────────
+function buildPaymentPage() {
+  document.getElementById('sum-team').textContent   = selectedTeam?.teamName || '—';
+  document.getElementById('sum-player').textContent = v('player-name');
+  const el = document.getElementById('payment-action');
+
+  if (!teamFinancials) {
+    document.getElementById('sum-fee-row').style.display = 'none';
+    el.innerHTML = `<button class="btn btn-navy" onclick="doSubmit()">Complete Registration</button>`;
+    return;
+  }
+
+  const { player_fee, deposit_enabled, deposit_amount, monthly_payments } = teamFinancials;
+
+  if (deposit_enabled) {
+    document.getElementById('sum-fee').textContent = `$${deposit_amount} deposit (total fee: $${player_fee})`;
+    el.innerHTML = `<button class="btn btn-primary" onclick="doSubmitAndPay('deposit')">Pay $${deposit_amount} Deposit</button>`;
+  } else if (!monthly_payments) {
+    document.getElementById('sum-fee').textContent = `$${player_fee}`;
+    el.innerHTML = `<button class="btn btn-primary" onclick="doSubmitAndPay('full')">Pay $${player_fee} Now</button>`;
+  } else {
+    document.getElementById('sum-fee-row').style.display = 'none';
+    el.innerHTML = `<button class="btn btn-navy" onclick="doSubmit()">Complete Registration</button>`;
+  }
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+async function createRecords() {
+  const pr = await fetch(`${API_BASE}/api/teams/${selectedTeam._id}/roster`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name:        v('player-name'),
+      jersey:      v('jersey-1'),
+      jersey2:     v('jersey-2'),
+      gradYear:    vs('grad-year'),
+      position:    vs('pos-1'),
+      pos2:        vs('pos-2'),
+      hw:          v('hw'),
+      city:        v('addr-city'),
+      state:       v('addr-state'),
+      address:     v('addr-street'),
+      zip:         v('addr-zip'),
+      email:       v('player-email'),
+      cell:        v('player-cell'),
+      dob:         v('player-dob'),
+      bats:        gr('bats'),
+      throws:      gr('throws'),
+      highSchool:  v('high-school'),
+      motherFirst: v('mother-first'),
+      motherLast:  v('mother-last'),
+      motherCell:  v('mother-cell'),
+      motherEmail: v('mother-email'),
+      fatherFirst: v('father-first'),
+      fatherLast:  v('father-last'),
+      fatherCell:  v('father-cell'),
+      fatherEmail: v('father-email'),
+      teamName:    selectedTeam?.teamName || '',
+    }),
+  });
+  const pd = await pr.json();
+  if (!pr.ok) throw new Error(pd.message || 'Failed to save player.');
+  createdPlayerId = pd.player?._id;
+
+  const fee = teamFinancials?.player_fee || 0;
+  const dep = teamFinancials?.deposit_amount || 0;
+
+  const pymr = await fetch(`${API_BASE}/api/coach/player-payments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      coachId:         selectedTeam._id,
+      playerId:        createdPlayerId,
+      playerName:      v('player-name'),
+      totalFee:        fee,
+      depositAmount:   dep,
+      balance:         fee,
+      registeredDate:  new Date().toISOString().split('T')[0],
+      paymentDeadline: teamFinancials?.payment_deadline || '',
+    }),
+  });
+  const pymd = await pymr.json();
+  if (!pymr.ok) throw new Error(pymd.message || 'Failed to create payment record.');
+  createdPaymentId = pymd.payment?._id;
+  return createdPaymentId;
+}
+
+async function doSubmit() {
+  const btn = document.querySelector('#payment-action button');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  hideErr('err-3');
+  try {
+    await createRecords();
+    document.getElementById('payment-card').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+  } catch(err) {
+    showErr('err-3', err.message);
+    btn.disabled = false; btn.textContent = 'Complete Registration';
+  }
+}
+
+async function doSubmitAndPay(paymentType) {
+  const btn = document.querySelector('#payment-action button');
+  btn.disabled = true; btn.textContent = 'Processing…';
+  hideErr('err-3');
+  try {
+    const paymentId = await createRecords();
+    const origin = window.location.href.split('?')[0];
+    const cr = await fetch(`${API_BASE}/api/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        coachId:         selectedTeam._id,
+        paymentType,
+        playerPaymentId: paymentId,
+        successUrl:      origin + '?payment=success',
+        cancelUrl:       origin + '?payment=cancelled',
+      }),
+    });
+    const cd = await cr.json();
+    if (!cr.ok) throw new Error(cd.message || 'Checkout failed.');
+    window.location.href = cd.url;
+  } catch(err) {
+    showErr('err-3', err.message);
+    const b = document.querySelector('#payment-action button');
+    if (b) { b.disabled = false; b.textContent = 'Try Again'; }
+  }
+}
+
+// ── MOBILE MENU ───────────────────────────────────────────────────────────
+function openMobileMenu()  { document.getElementById('mobileMenu').classList.add('open');    document.body.style.overflow = 'hidden'; }
+function closeMobileMenu() { document.getElementById('mobileMenu').classList.remove('open'); document.body.style.overflow = ''; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileMenu(); });
+
+// ── ACK ERROR CLEAR ON CHANGE ────────────────────────────────────────────
+document.querySelectorAll('.ack-block input[type="radio"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    radio.closest('.ack-block')?.classList.remove('has-error');
+    radio.closest('.ack-block .ack-text')?.classList.remove('has-error');
+  });
+});
+
+// ── STRIPE RETURN ─────────────────────────────────────────────────────────
+(() => {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('payment') === 'success') {
+    setPage(3);
+    document.getElementById('payment-card').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+  }
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script>
+  flatpickr('#player-dob', {
+    dateFormat: 'Y-m-d',
+    altInput: true,
+    altFormat: 'F j, Y',
+    maxDate: 'today',
+    minDate: '1990-01-01',
+    disableMobile: false,
+    allowInput: false,
+    onReady: function(selectedDates, dateStr, instance) {
+      // Make year input easily editable
+      instance.calendarContainer?.querySelector('.cur-year')?.removeAttribute('disabled');
+    }
+  });
+</script>
+</body>
+</html>
