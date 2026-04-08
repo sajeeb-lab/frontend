@@ -444,8 +444,8 @@
     transition: background .2s, transform .15s, opacity .2s;
   }
   .btn:active { transform: scale(.98); }
-  .btn-primary { background: #0042ab; color: var(--white); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,66,171,.35); }
-  .btn-primary:hover { background: #003090; }
+  .btn-primary { background: var(--red); color: var(--white); border-radius: 999px; }
+  .btn-primary:hover { background: var(--red2); }
   .btn-navy    { background: var(--navy); color: var(--white); }
   .btn-navy:hover { background: var(--navy2); }
   .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
@@ -742,7 +742,7 @@
   }
   .navbar-mobile-links a:hover { background: #0042ab; color: #fff; }
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1280px) {
     .navbar-cta-col  { display: none; }
   }
   @media (max-width: 480px) {
