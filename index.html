@@ -1305,7 +1305,7 @@ function goToPage2() {
   setPage(2);
 }
 
-function goToPage3() {
+async function goToPage3() {
   hideErr('err-2');
   const page = document.getElementById('page-2');
   clearErrors(page);
@@ -1316,17 +1316,51 @@ function goToPage3() {
   reqText.forEach(id => { if (!v(id)) { markError(id); invalid = true; } });
   reqSelect.forEach(id => { if (!vs(id)) { markError(id); invalid = true; } });
   ['bats','throws'].forEach(name => {
-    const inputs = document.querySelectorAll(`input[name="${name}"]`);
-    const field  = inputs[0]?.closest('.field');
-    if (!gr(name)) {
-      if (field) { field.classList.add('has-error'); }
-      invalid = true;
-    }
+    const field = document.querySelector(`input[name="${name}"]`)?.closest('.field');
+    if (!gr(name)) { if (field) field.classList.add('has-error'); invalid = true; }
   });
 
   if (invalid) return showErr('err-2', 'Please complete all required fields marked with ★ before continuing.');
-  buildPaymentPage();
-  setPage(3);
+
+  // Skip page 3 — go directly to checkout
+  const btn = document.querySelector('#page-2 .btn-primary');
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
+
+  try {
+    const paymentId = await createRecords();
+
+    // No financials or monthly payments — show success directly
+    if (!teamFinancials || (teamFinancials.monthly_payments && !teamFinancials.deposit_enabled)) {
+      setPage(3);
+      document.getElementById('payment-card').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+      return;
+    }
+
+    // Deposit or full payment — redirect straight to Stripe checkout
+    const paymentType = teamFinancials.deposit_enabled ? 'deposit' : 'full';
+    const origin = window.location.href.split('?')[0];
+    const cr = await fetch(`${API_BASE}/api/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        coachId:         selectedTeam._id,
+        paymentType,
+        playerPaymentId: paymentId,
+        successUrl:      origin + '?payment=success',
+        cancelUrl:       origin + '?payment=cancelled',
+      }),
+    });
+    const cd = await cr.json();
+    if (!cr.ok) throw new Error(cd.message || 'Checkout failed.');
+    window.location.href = cd.url;
+
+  } catch(err) {
+    showErr('err-2', err.message);
+    btn.disabled = false;
+    btn.textContent = 'Continue to Payment';
+  }
 }
 
 // ── PAYMENT PAGE ──────────────────────────────────────────────────────────
