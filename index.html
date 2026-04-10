@@ -1262,6 +1262,8 @@ function renderFee() {
   const lbl = document.getElementById('fee-label');
   lbl.style.display = 'none';
 
+  // Deposit always takes priority — if deposit + monthly are both on, show deposit only.
+  // Monthly-only info is never shown when deposit is enabled.
   if (deposit_enabled) {
     amt.textContent   = `$${deposit_amount || 0}`;
     badge.textContent = 'Deposit';
@@ -1406,6 +1408,8 @@ function buildPaymentPage() {
 
   const { player_fee, deposit_enabled, deposit_amount, monthly_payments } = teamFinancials;
 
+  // Deposit always takes priority — if deposit + monthly are both on, show deposit only.
+  // No monthly info or installment button is shown when deposit is enabled.
   if (deposit_enabled) {
     document.getElementById('sum-fee').textContent = `$${deposit_amount} deposit (total fee: $${player_fee})`;
     el.innerHTML = `<button class="btn btn-primary" onclick="doSubmitAndPay('deposit')">Pay $${deposit_amount} Deposit</button>`;
