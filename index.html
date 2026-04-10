@@ -1144,10 +1144,11 @@
 <script>
 const API_BASE = 'https://baseball-backend-one.vercel.app';
 
-let selectedTeam     = null;
-let teamFinancials   = null;
-let createdPlayerId  = null;
-let createdPaymentId = null;
+let selectedTeam       = null;
+let teamFinancials     = null;
+let installmentPreview = null;   // dynamic per-month data from /installment-preview
+let createdPlayerId    = null;
+let createdPaymentId   = null;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
 const v  = id => document.getElementById(id).value.trim();
@@ -1221,11 +1222,16 @@ async function selectTeam(id) {
   document.getElementById('selected-team-badge').style.display = 'flex';
 
   try {
-    const r = await fetch(`${API_BASE}/api/teams/${id}/financials`);
-    const d = await r.json();
-    teamFinancials = d.financials;
+    const [finRes, previewRes] = await Promise.all([
+      fetch(`${API_BASE}/api/teams/${id}/financials`),
+      fetch(`${API_BASE}/api/teams/${id}/installment-preview`),
+    ]);
+    const finData     = await finRes.json();
+    const previewData = await previewRes.json();
+    teamFinancials     = finData.financials || null;
+    installmentPreview = previewData.enabled ? previewData : null;
     renderFee();
-  } catch(e) { teamFinancials = null; }
+  } catch(e) { teamFinancials = null; installmentPreview = null; }
 }
 
 function setFeePlaceholder() {
@@ -1254,17 +1260,21 @@ function renderFee() {
   badge.style.opacity = '1';
 
   const lbl = document.getElementById('fee-label');
+  lbl.style.display = 'none';
 
   if (deposit_enabled) {
-    lbl.style.display = 'none';
     amt.textContent   = `$${deposit_amount || 0}`;
     badge.textContent = 'Deposit';
+  } else if (monthly_payments && installmentPreview) {
+    // Show dynamic per-month amount based on months remaining until deadline
+    const { perMonth, months } = installmentPreview;
+    amt.textContent   = `$${perMonth.toFixed(2)}/mo`;
+    badge.textContent = `${months} Month${months !== 1 ? 's' : ''}`;
   } else if (!monthly_payments) {
-    lbl.style.display = 'none';
     amt.textContent   = `$${player_fee || 0}`;
     badge.textContent = 'Full Payment';
   } else {
-    lbl.style.display = 'none';
+    // monthly_payments ON but preview not loaded — fallback
     amt.textContent   = `$${player_fee || 0}`;
     badge.textContent = 'Monthly';
   }
@@ -1329,17 +1339,37 @@ async function goToPage3() {
   try {
     const paymentId = await createRecords();
 
-    // No financials or monthly payments — show success directly
-    if (!teamFinancials || (teamFinancials.monthly_payments && !teamFinancials.deposit_enabled)) {
+    // No financials set up — show success directly (coach hasn't configured payments)
+    if (!teamFinancials) {
       setPage(3);
       document.getElementById('payment-card').style.display = 'none';
       document.getElementById('success-screen').style.display = 'block';
       return;
     }
 
-    // Deposit or full payment — redirect straight to Stripe checkout
-    const paymentType = teamFinancials.deposit_enabled ? 'deposit' : 'full';
     const origin = window.location.href.split('?')[0];
+
+    // Monthly payments only (no deposit) → Stripe installment subscription
+    if (teamFinancials.monthly_payments && !teamFinancials.deposit_enabled) {
+      const cr = await fetch(`${API_BASE}/api/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          coachId:         selectedTeam._id,
+          paymentType:     'installment',
+          playerPaymentId: paymentId,
+          successUrl:      origin + '?payment=success',
+          cancelUrl:       origin + '?payment=cancelled',
+        }),
+      });
+      const cd = await cr.json();
+      if (!cr.ok) throw new Error(cd.message || 'Checkout failed.');
+      window.location.href = cd.url;
+      return;
+    }
+
+    // Deposit or full payment → redirect straight to Stripe checkout
+    const paymentType = teamFinancials.deposit_enabled ? 'deposit' : 'full';
     const cr = await fetch(`${API_BASE}/api/checkout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1379,12 +1409,21 @@ function buildPaymentPage() {
   if (deposit_enabled) {
     document.getElementById('sum-fee').textContent = `$${deposit_amount} deposit (total fee: $${player_fee})`;
     el.innerHTML = `<button class="btn btn-primary" onclick="doSubmitAndPay('deposit')">Pay $${deposit_amount} Deposit</button>`;
-  } else if (!monthly_payments) {
+  } else if (monthly_payments) {
+    // Show dynamic per-month installment details
+    const preview = installmentPreview;
+    if (preview) {
+      const perMonth = preview.perMonth.toFixed(2);
+      const months   = preview.months;
+      document.getElementById('sum-fee').textContent = `$${perMonth}/mo × ${months} months = $${player_fee} total`;
+      el.innerHTML = `<button class="btn btn-primary" onclick="doSubmitAndPay('installment')">Start Monthly Payments — $${perMonth}/mo</button>`;
+    } else {
+      document.getElementById('sum-fee').textContent = `$${player_fee} total (monthly)`;
+      el.innerHTML = `<button class="btn btn-primary" onclick="doSubmitAndPay('installment')">Start Monthly Payments</button>`;
+    }
+  } else {
     document.getElementById('sum-fee').textContent = `$${player_fee}`;
     el.innerHTML = `<button class="btn btn-primary" onclick="doSubmitAndPay('full')">Pay $${player_fee} Now</button>`;
-  } else {
-    document.getElementById('sum-fee-row').style.display = 'none';
-    el.innerHTML = `<button class="btn btn-navy" onclick="doSubmit()">Complete Registration</button>`;
   }
 }
 
