@@ -850,34 +850,6 @@
 
 <div class="main">
 
-  <!-- ══ TEST MODE PANEL — only visible when ?testmode=1 ══ -->
-  <div id="test-mode-panel" style="display:none;margin-bottom:1.2rem;background:#fff8e1;border:2px dashed #f59e0b;border-radius:8px;padding:1.2rem 1.4rem;">
-    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
-      <span style="font-size:1.1rem;">🧪</span>
-      <span style="font-family:'Oswald',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#92400e;">Test Mode — Stripe Test Clock</span>
-      <span style="margin-left:auto;font-size:.72rem;color:#92400e;background:#fde68a;padding:2px 8px;border-radius:10px;font-weight:600;">NOT VISIBLE IN PRODUCTION</span>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-      <div class="field" style="margin:0">
-        <label style="color:#92400e;">Simulated Registration Date</label>
-        <input type="month" id="test-reg-date"
-          style="background:#fff;border-color:#f59e0b;"
-          placeholder="YYYY-MM"
-          oninput="onTestDateChange(this.value)">
-        <div class="hint" style="color:#92400e;">Sets the month used to calculate installments</div>
-      </div>
-      <div class="field" style="margin:0">
-        <label style="color:#92400e;">Stripe Test Clock Customer ID</label>
-        <input type="text" id="test-customer-id"
-          style="background:#fff;border-color:#f59e0b;"
-          placeholder="cus_xxxxxxxxxxxx"
-          oninput="testClockCustomerId = this.value.trim()">
-        <div class="hint" style="color:#92400e;">Customer must be attached to a Stripe test clock</div>
-      </div>
-    </div>
-    <div id="test-preview-result" style="margin-top:.9rem;font-size:.82rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:.6rem .9rem;display:none;"></div>
-  </div>
-
   <!-- ══ PAGE 1 ══ -->
   <div class="page active" id="page-1">
     <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
@@ -1174,14 +1146,9 @@ const API_BASE = 'https://baseball-backend-one.vercel.app';
 
 let selectedTeam       = null;
 let teamFinancials     = null;
-let installmentPreview = null;
+let installmentPreview = null;   // dynamic per-month data from /installment-preview
 let createdPlayerId    = null;
 let createdPaymentId   = null;
-
-// ── TEST MODE — only active when ?testmode=1 is in the URL ────────────────
-const TEST_MODE = new URLSearchParams(window.location.search).get('testmode') === '1';
-let testRegistrationDate   = '';   // ISO date string e.g. "2026-06-01"
-let testClockCustomerId    = '';   // Stripe customer ID e.g. "cus_xxx"
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
 const v  = id => document.getElementById(id).value.trim();
@@ -1255,12 +1222,9 @@ async function selectTeam(id) {
   document.getElementById('selected-team-badge').style.display = 'flex';
 
   try {
-    const previewUrl = `${API_BASE}/api/teams/${id}/installment-preview`
-      + (TEST_MODE && testRegistrationDate ? `?date=${encodeURIComponent(testRegistrationDate)}` : '');
-
     const [finRes, previewRes] = await Promise.all([
       fetch(`${API_BASE}/api/teams/${id}/financials`),
-      fetch(previewUrl),
+      fetch(`${API_BASE}/api/teams/${id}/installment-preview`),
     ]);
     const finData     = await finRes.json();
     const previewData = await previewRes.json();
@@ -1391,13 +1355,11 @@ async function goToPage3() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          coachId:             selectedTeam._id,
-          paymentType:         'installment',
-          playerPaymentId:     paymentId,
-          successUrl:          origin + '?payment=success',
-          cancelUrl:           origin + '?payment=cancelled',
-          ...(TEST_MODE && testRegistrationDate   ? { registrationDate:    testRegistrationDate }   : {}),
-          ...(TEST_MODE && testClockCustomerId     ? { testClockCustomerId: testClockCustomerId }     : {}),
+          coachId:         selectedTeam._id,
+          paymentType:     'installment',
+          playerPaymentId: paymentId,
+          successUrl:      origin + '?payment=success',
+          cancelUrl:       origin + '?payment=cancelled',
         }),
       });
       const cd = await cr.json();
@@ -1556,8 +1518,6 @@ async function doSubmitAndPay(paymentType) {
         playerPaymentId: paymentId,
         successUrl:      origin + '?payment=success',
         cancelUrl:       origin + '?payment=cancelled',
-        ...(TEST_MODE && testRegistrationDate ? { registrationDate:    testRegistrationDate } : {}),
-        ...(TEST_MODE && testClockCustomerId  ? { testClockCustomerId: testClockCustomerId }  : {}),
       }),
     });
     const cd = await cr.json();
@@ -1567,44 +1527,6 @@ async function doSubmitAndPay(paymentType) {
     showErr('err-3', err.message);
     const b = document.querySelector('#payment-action button');
     if (b) { b.disabled = false; b.textContent = 'Try Again'; }
-  }
-}
-
-// ── TEST MODE INIT ────────────────────────────────────────────────────────
-if (TEST_MODE) {
-  document.getElementById('test-mode-panel').style.display = 'block';
-  // Default simulated date to current month
-  const now = new Date();
-  const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  document.getElementById('test-reg-date').value = defaultMonth;
-  testRegistrationDate = `${defaultMonth}-01`;
-}
-
-async function onTestDateChange(monthValue) {
-  // monthValue is "YYYY-MM" from the month input
-  testRegistrationDate = monthValue ? `${monthValue}-01` : '';
-
-  // Re-fetch installment preview with the new date so fee display updates
-  if (selectedTeam && testRegistrationDate) {
-    try {
-      const previewUrl = `${API_BASE}/api/teams/${selectedTeam._id}/installment-preview`
-        + `?date=${encodeURIComponent(testRegistrationDate)}`;
-      const r = await fetch(previewUrl);
-      const d = await r.json();
-      installmentPreview = d.enabled ? d : null;
-      renderFee();
-
-      // Show preview result in test panel
-      const resultEl = document.getElementById('test-preview-result');
-      if (d.enabled) {
-        resultEl.style.display = 'block';
-        resultEl.innerHTML = `📅 <strong>${monthValue}</strong> → <strong>${d.months} month${d.months !== 1 ? 's' : ''}</strong> remaining → <strong>$${d.perMonth.toFixed(2)}/mo</strong> (balance $${d.balance})`;
-      } else {
-        resultEl.style.display = 'none';
-      }
-    } catch(e) {
-      console.error('Test preview fetch failed:', e);
-    }
   }
 }
 
